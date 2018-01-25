@@ -7,6 +7,8 @@
     "filing-cabinet": "bin/cli.js"
   },
   "scripts": {
+    "lint": "jscs index.js test/test.js",
+    "eslint": "eslint index.js test/test.js",
     "test": "jscs index.js test/test.js && ./node_modules/.bin/mocha --require babel-core/register test/test.js"
   },
   "repository": {
