@@ -5,7 +5,7 @@ var mock = require('mock-fs');
 var path = require('path');
 
 var cabinet = rewire('../');
-//manually add dynamic imports to rewired app
+// manually add dynamic imports to rewired app
 cabinet.__set__('resolveDependencyPath', require('resolve-dependency-path'));
 cabinet.__set__('resolve', require('resolve'));
 cabinet.__set__('getModuleType', require('module-definition'));
@@ -16,17 +16,17 @@ cabinet.__set__('webpackResolve', require('enhanced-resolve'));
 var mockedFiles = require('./mockedJSFiles');
 var mockAST = require('./ast');
 
-describe('filing-cabinet', function() {
-  describe('JavaScript', function() {
-    beforeEach(function() {
+describe('filing-cabinet', () => {
+  describe('JavaScript', () => {
+    beforeEach(() => {
       mock(mockedFiles);
     });
 
-    afterEach(function() {
+    afterEach(() => {
       mock.restore();
     });
 
-    it('dangles off its supported file extensions', function() {
+    it('dangles off its supported file extensions', () => {
       assert.deepEqual(cabinet.supportedFileExtensions, [
         '.js',
         '.jsx',
@@ -38,7 +38,7 @@ describe('filing-cabinet', function() {
       ]);
     });
 
-    it('uses a generic resolve for unsupported file extensions', function() {
+    it('uses a generic resolve for unsupported file extensions', () => {
       var stub = sinon.stub();
       var revert = cabinet.__set__('resolveDependencyPath', stub);
 
@@ -53,8 +53,8 @@ describe('filing-cabinet', function() {
       revert();
     });
 
-    describe('when given an ast for a JS file', function() {
-      it('reuses the ast when trying to determine the module type', function() {
+    describe('when given an ast for a JS file', () => {
+      it('reuses the ast when trying to determine the module type', () => {
         var stub = sinon.stub();
         var revert = cabinet.__set__('getModuleType', {
           fromSource: stub
@@ -72,7 +72,7 @@ describe('filing-cabinet', function() {
         revert();
       });
 
-      it('resolves the partial successfully', function() {
+      it('resolves the partial successfully', () => {
         var result = cabinet({
           partial: './bar',
           filename: 'js/es6/foo.js',
@@ -84,8 +84,8 @@ describe('filing-cabinet', function() {
       });
     });
 
-    describe('when not given an ast', function() {
-      it('uses the filename to look for the module type', function() {
+    describe('when not given an ast', () => {
+      it('uses the filename to look for the module type', () => {
         var stub = sinon.stub();
 
         var revert = cabinet.__set__('getModuleType', {
@@ -105,8 +105,8 @@ describe('filing-cabinet', function() {
       });
     });
 
-    describe('es6', function() {
-      it('assumes commonjs for es6 modules with no requirejs/webpack config', function() {
+    describe('es6', () => {
+      it('assumes commonjs for es6 modules with no requirejs/webpack config', () => {
         var stub = sinon.stub();
         var revert = cabinet.__set__('commonJSLookup', stub);
 
@@ -121,7 +121,7 @@ describe('filing-cabinet', function() {
         revert();
       });
 
-      it('assumes amd for es6 modules with a requirejs config', function() {
+      it('assumes amd for es6 modules with a requirejs config', () => {
         var spy = sinon.spy(cabinet, '_getJSType');
 
         var result = cabinet({
@@ -139,8 +139,8 @@ describe('filing-cabinet', function() {
       });
     });
 
-    describe('jsx', function() {
-      it('resolves files with the .jsx extension', function() {
+    describe('jsx', () => {
+      it('resolves files with the .jsx extension', () => {
         const result = cabinet({
           partial: './bar',
           filename: 'js/es6/foo.jsx',
@@ -151,8 +151,8 @@ describe('filing-cabinet', function() {
       });
     });
 
-    describe('amd', function() {
-      it('uses the amd resolver', function() {
+    describe('amd', () => {
+      it('uses the amd resolver', () => {
         var stub = sinon.stub();
         var revert = cabinet.__set__('amdLookup', stub);
 
@@ -167,7 +167,7 @@ describe('filing-cabinet', function() {
         revert();
       });
 
-      it('passes along arguments', function() {
+      it('passes along arguments', () => {
         var stub = sinon.stub();
         var revert = cabinet.__set__('amdLookup', stub);
         var config = {baseUrl: 'js'};
@@ -194,8 +194,8 @@ describe('filing-cabinet', function() {
       });
     });
 
-    describe('commonjs', function() {
-      it('uses require\'s resolver', function() {
+    describe('commonjs', () => {
+      it('uses require\'s resolver', () => {
         var stub = sinon.stub();
         var revert = cabinet.__set__('commonJSLookup', stub);
 
@@ -210,7 +210,7 @@ describe('filing-cabinet', function() {
         revert();
       });
 
-      it('returns an empty string for an unresolved module', function() {
+      it('returns an empty string for an unresolved module', () => {
         var result = cabinet({
           partial: 'foobar',
           filename: 'js/commonjs/foo.js',
@@ -220,7 +220,7 @@ describe('filing-cabinet', function() {
         assert.equal(result, '');
       });
 
-      it('adds the directory to the require resolution paths', function() {
+      it('adds the directory to the require resolution paths', () => {
         var directory = 'js/commonjs/';
         var result = cabinet({
           partial: 'foobar',
@@ -228,12 +228,10 @@ describe('filing-cabinet', function() {
           directory: directory
         });
 
-        assert.ok(require.main.paths.some(function(p) {
-          return p.indexOf(directory) !== -1;
-        }));
+        assert.ok(require.main.paths.some((p) => p.indexOf(directory) !== -1));
       });
 
-      it('resolves a relative partial about the filename', function() {
+      it('resolves a relative partial about the filename', () => {
         var directory = 'js/commonjs/';
         var filename = directory + 'foo.js';
 
@@ -246,7 +244,7 @@ describe('filing-cabinet', function() {
         assert.equal(result, path.join(path.resolve(directory), 'bar.js'));
       });
 
-      it('resolves a .. partial to its parent directory\'s index.js file', function() {
+      it('resolves a .. partial to its parent directory\'s index.js file', () => {
         var directory = 'js/commonjs/';
         var filename = directory + 'subdir/module.js';
 
@@ -259,7 +257,7 @@ describe('filing-cabinet', function() {
         assert.equal(result, path.join(path.resolve(directory), 'index.js'));
       });
 
-      it('resolves a partial within a directory outside of the given file', function() {
+      it('resolves a partial within a directory outside of the given file', () => {
         var directory = 'js/commonjs/';
         var filename = directory + 'test/index.spec.js';
 
@@ -272,7 +270,7 @@ describe('filing-cabinet', function() {
         assert.equal(result, path.join(path.resolve(directory), 'subdir/index.js'));
       });
 
-      it('resolves a node module with module entry in package.json', function() {
+      it('resolves a node module with module entry in package.json', () => {
         var directory = 'js/commonjs/';
         var filename = directory + 'module.entry.js';
 
@@ -297,7 +295,7 @@ describe('filing-cabinet', function() {
         );
       });
 
-      it('resolves a nested module', function() {
+      it('resolves a nested module', () => {
         var directory = 'js/node_modules/nested/';
         var filename = directory + 'index.js';
 
@@ -318,7 +316,7 @@ describe('filing-cabinet', function() {
         );
       });
 
-      it('resolves to the index.js file of a directory', function() {
+      it('resolves to the index.js file of a directory', () => {
         var directory = 'js/withIndex';
         var filename = directory + '/index.js';
 
@@ -334,7 +332,7 @@ describe('filing-cabinet', function() {
         );
       });
 
-      it('resolves implicit .jsx requires', function() {
+      it('resolves implicit .jsx requires', () => {
         const result = cabinet({
           partial: './bar',
           filename: 'js/cjs/foo.js',
@@ -345,8 +343,8 @@ describe('filing-cabinet', function() {
       });
     });
 
-    describe('typescript', function() {
-      it('resolves an import', function() {
+    describe('typescript', () => {
+      it('resolves an import', () => {
         var directory = 'js/ts';
         var filename = directory + '/index.ts';
 
@@ -362,8 +360,8 @@ describe('filing-cabinet', function() {
         );
       });
 
-      describe('when a partial does not exist', function() {
-        it('returns an empty result', function() {
+      describe('when a partial does not exist', () => {
+        it('returns an empty result', () => {
           var directory = 'js/ts';
           var filename = directory + '/index.ts';
 
@@ -379,7 +377,7 @@ describe('filing-cabinet', function() {
     });
   });
 
-  describe('CSS', function() {
+  describe('CSS', () => {
     beforeEach(function() {
       mock({
         stylus: {
@@ -402,11 +400,11 @@ describe('filing-cabinet', function() {
       this._directory = path.resolve(__dirname, '../');
     });
 
-    afterEach(function() {
+    afterEach(() => {
       mock.restore();
     });
 
-    describe('sass', function() {
+    describe('sass', () => {
       it('uses the sass resolver for .scss files', function() {
         const result = cabinet({
           partial: 'bar',
@@ -428,7 +426,7 @@ describe('filing-cabinet', function() {
       });
     });
 
-    describe('stylus', function() {
+    describe('stylus', () => {
       it('uses the stylus resolver', function() {
         const result = cabinet({
           partial: 'bar',
@@ -440,7 +438,7 @@ describe('filing-cabinet', function() {
       });
     });
 
-    describe('less', function() {
+    describe('less', () => {
       it('resolves extensionless partials', function() {
         const result = cabinet({
           partial: 'bar',
@@ -473,22 +471,22 @@ describe('filing-cabinet', function() {
     });
   });
 
-  describe('.register', function() {
-    it('registers a custom resolver for a given extension', function() {
+  describe('.register', () => {
+    it('registers a custom resolver for a given extension', () => {
       var stub = sinon.stub().returns('foo.foobar');
       cabinet.register('.foobar', stub);
 
-      var path = cabinet({
+      var localPath = cabinet({
         partial: './bar',
         filename: 'js/amd/foo.foobar',
         directory: 'js/amd/'
       });
 
       assert.ok(stub.called);
-      assert.equal(path, 'foo.foobar');
+      assert.equal(localPath, 'foo.foobar');
     });
 
-    it('allows does not break default resolvers', function() {
+    it('allows does not break default resolvers', () => {
       mock({
         stylus: {
           'foo.styl': '',
@@ -518,7 +516,7 @@ describe('filing-cabinet', function() {
       mock.restore();
     });
 
-    it('can be called multiple times', function() {
+    it('can be called multiple times', () => {
       var stub = sinon.stub().returns('foo');
       var stub2 = sinon.stub().returns('foo');
 
@@ -541,7 +539,7 @@ describe('filing-cabinet', function() {
       assert.ok(stub2.called);
     });
 
-    it('does not add redundant extensions to supportedFileExtensions', function() {
+    it('does not add redundant extensions to supportedFileExtensions', () => {
       const stub = sinon.stub;
       const newExt = '.foobar';
 
@@ -554,10 +552,10 @@ describe('filing-cabinet', function() {
     });
   });
 
-  describe('webpack', function() {
+  describe('webpack', () => {
     let directory;
 
-    beforeEach(function() {
+    beforeEach(() => {
       directory = path.resolve(__dirname, '../');
     });
 
@@ -572,19 +570,19 @@ describe('filing-cabinet', function() {
       assert.equal(resolved, expected);
     }
 
-    it('resolves an aliased path', function() {
+    it('resolves an aliased path', () => {
       testResolution('R', `${directory}/node_modules/resolve/index.js`);
     });
 
-    it('resolves a non-aliased path', function() {
+    it('resolves a non-aliased path', () => {
       testResolution('resolve', `${directory}/node_modules/resolve/index.js`);
     });
 
-    it('resolves a relative path', function() {
+    it('resolves a relative path', () => {
       testResolution('./test/ast', `${directory}/test/ast.js`);
     });
 
-    it('resolves an absolute path from a file within a subdirectory', function() {
+    it('resolves an absolute path from a file within a subdirectory', () => {
       const resolved = cabinet({
         partial: 'R',
         filename: `${directory}/test/ast.js`,
@@ -595,7 +593,7 @@ describe('filing-cabinet', function() {
       assert.equal(resolved, `${directory}/node_modules/resolve/index.js`);
     });
 
-    it('resolves a path using resolve.root', function() {
+    it('resolves a path using resolve.root', () => {
       const resolved = cabinet({
         partial: 'mod1',
         filename: `${directory}/index.js`,
@@ -606,7 +604,7 @@ describe('filing-cabinet', function() {
       assert.equal(resolved, `${directory}/test/root1/mod1.js`);
     });
 
-    it('resolves NPM module when using resolve.root', function() {
+    it('resolves NPM module when using resolve.root', () => {
       const resolved = cabinet({
         partial: 'resolve',
         filename: `${directory}/index.js`,
@@ -617,7 +615,7 @@ describe('filing-cabinet', function() {
       assert.equal(resolved, `${directory}/node_modules/resolve/index.js`);
     });
 
-    it('resolves NPM module when using resolve.modulesDirectories', function() {
+    it('resolves NPM module when using resolve.modulesDirectories', () => {
       const resolved = cabinet({
         partial: 'resolve',
         filename: `${directory}/index.js`,
@@ -628,7 +626,7 @@ describe('filing-cabinet', function() {
       assert.equal(resolved, `${directory}/node_modules/resolve/index.js`);
     });
 
-    it('resolves a path using resolve.modulesDirectories', function() {
+    it('resolves a path using resolve.modulesDirectories', () => {
       const resolved = cabinet({
         partial: 'mod2',
         filename: `${directory}/index.js`,
@@ -639,7 +637,7 @@ describe('filing-cabinet', function() {
       assert.equal(resolved, `${directory}/test/root2/mod2.js`);
     });
 
-    it('resolves a path using webpack config that exports a function', function() {
+    it('resolves a path using webpack config that exports a function', () => {
       const resolved = cabinet({
         partial: 'R',
         filename: `${directory}/index.js`,
@@ -650,12 +648,12 @@ describe('filing-cabinet', function() {
       assert.equal(resolved, `${directory}/node_modules/resolve/index.js`);
     });
 
-    it('resolves files with a .jsx extension', function() {
+    it('resolves files with a .jsx extension', () => {
       testResolution('./test/foo.jsx', `${directory}/test/foo.jsx`);
     });
 
-    describe('when the partial contains a loader', function() {
-      it('still works', function() {
+    describe('when the partial contains a loader', () => {
+      it('still works', () => {
         testResolution('hgn!resolve', `${directory}/node_modules/resolve/index.js`);
       });
     });
